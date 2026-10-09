@@ -313,11 +313,14 @@
                 </label>
                 <div class="relative">
                   <input type="tel" id="formPhone" required 
-                    inputmode="tel"
-                    placeholder="08X-XXX-XXXX" 
-                    maxlength="12"
-                    class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition">
+                    inputmode="numeric"
+                    pattern="[0-9]{10}"
+                    placeholder="0XXXXXXXXX (10 หลัก)" 
+                    maxlength="10"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); validatePhoneNumber(this, 'formPhoneError');"
+                    class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition font-mono tracking-wider">
                 </div>
+                <p id="formPhoneError" class="hidden text-rose-500 text-[11px] mt-1 font-medium flex items-center gap-1"></p>
               </div>
 
               <!-- Line ID -->
@@ -380,7 +383,7 @@
                 <label for="formEmergencyRelation" class="block text-xs font-semibold text-slate-700 mb-1">
                   ความสัมพันธ์ <span class="text-rose-500">*</span>
                 </label>
-                <select id="formEmergencyRelation" required 
+                <select id="formEmergencyRelation" required onchange="handleRelationChange(this.value)"
                   class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition">
                   <option value="">-- เลือกความสัมพันธ์ --</option>
                   <option value="บิดา">บิดา</option>
@@ -394,16 +397,31 @@
                 </select>
               </div>
 
+              <!-- ช่องพิมพ์ระบุความสัมพันธ์เพิ่มเติมเมื่อเลือกอื่นๆ -->
+              <div id="otherRelationContainer" class="hidden sm:col-span-2">
+                <label for="formEmergencyRelationOther" class="block text-xs font-semibold text-slate-700 mb-1">
+                  โปรดระบุความสัมพันธ์เพิ่มเติม <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="formEmergencyRelationOther" 
+                  placeholder="เช่น ลุง, ป้า, เพื่อนร่วมงาน, ผู้จัดการ ฯลฯ" 
+                  class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition">
+              </div>
+
               <!-- เบอร์โทรฉุกเฉิน -->
               <div class="sm:col-span-2">
                 <label for="formEmergencyPhone" class="block text-xs font-semibold text-slate-700 mb-1">
                   เบอร์โทรศัพท์ผู้ติดต่อฉุกเฉิน <span class="text-rose-500">*</span>
                 </label>
-                <input type="tel" id="formEmergencyPhone" required 
-                  inputmode="tel"
-                  placeholder="08X-XXX-XXXX" 
-                  maxlength="12"
-                  class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition">
+                <div class="relative">
+                  <input type="tel" id="formEmergencyPhone" required 
+                    inputmode="numeric"
+                    pattern="[0-9]{10}"
+                    placeholder="0XXXXXXXXX (10 หลัก)" 
+                    maxlength="10"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); validatePhoneNumber(this, 'formEmergencyPhoneError');"
+                    class="w-full h-11 px-3.5 bg-slate-50/60 border border-slate-300 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition font-mono tracking-wider">
+                </div>
+                <p id="formEmergencyPhoneError" class="hidden text-rose-500 text-[11px] mt-1 font-medium flex items-center gap-1"></p>
               </div>
 
               <!-- ที่อยู่ผู้ติดต่อฉุกเฉิน พร้อมปุ่มลัด -->
@@ -645,7 +663,19 @@
       if (emp.email) document.getElementById('formEmail').value = emp.email;
       if (emp.address) document.getElementById('formAddress').value = emp.address;
       if (emp.emergencyName) document.getElementById('formEmergencyName').value = emp.emergencyName;
-      if (emp.emergencyRelation) document.getElementById('formEmergencyRelation').value = emp.emergencyRelation;
+      if (emp.emergencyRelation) {
+        const relationSelect = document.getElementById('formEmergencyRelation');
+        const knownOptions = ['บิดา', 'มารดา', 'คู่สมรส', 'บุตร', 'พี่/น้อง', 'ญาติ', 'เพื่อนสนิท'];
+        if (knownOptions.includes(emp.emergencyRelation)) {
+          relationSelect.value = emp.emergencyRelation;
+          handleRelationChange(emp.emergencyRelation);
+        } else {
+          relationSelect.value = 'อื่นๆ';
+          handleRelationChange('อื่นๆ');
+          const cleanOther = emp.emergencyRelation.replace(/^อื่นๆ\s*\(?/, '').replace(/\)?$/, '').trim();
+          document.getElementById('formEmergencyRelationOther').value = cleanOther;
+        }
+      }
       if (emp.emergencyPhone) document.getElementById('formEmergencyPhone').value = emp.emergencyPhone;
       if (emp.emergencyAddress) document.getElementById('formEmergencyAddress').value = emp.emergencyAddress;
     }
@@ -719,6 +749,49 @@
       }
     }
 
+    function handleRelationChange(val) {
+      const otherContainer = document.getElementById('otherRelationContainer');
+      const otherInput = document.getElementById('formEmergencyRelationOther');
+      if (val === 'อื่นๆ') {
+        otherContainer.classList.remove('hidden');
+        otherInput.required = true;
+        setTimeout(() => otherInput.focus(), 100);
+      } else {
+        otherContainer.classList.add('hidden');
+        otherInput.required = false;
+        otherInput.value = '';
+      }
+      lucide.createIcons();
+    }
+
+    function validatePhoneNumber(input, errorId) {
+      const err = document.getElementById(errorId);
+      const val = input.value.trim();
+      if (val.length === 0) {
+        err.classList.add('hidden');
+        err.textContent = '';
+        return false;
+      }
+      if (!val.startsWith('0')) {
+        err.classList.remove('hidden');
+        err.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i> เบอร์โทรศัพท์ต้องขึ้นต้นด้วยเลข 0';
+        lucide.createIcons();
+        return false;
+      }
+      if (val.length < 10) {
+        err.classList.remove('hidden');
+        err.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i> กำลังพิมพ์... ขาดอีก ' + (10 - val.length) + ' หลัก (ต้องครบ 10 หลัก)';
+        lucide.createIcons();
+        return false;
+      }
+      if (val.length === 10) {
+        err.classList.add('hidden');
+        err.textContent = '';
+        return true;
+      }
+      return false;
+    }
+
     function handleFormSubmit(e) {
       e.preventDefault();
       hideAlert();
@@ -728,15 +801,44 @@
         return;
       }
 
+      const phone = document.getElementById('formPhone').value.trim();
+      const emergencyPhone = document.getElementById('formEmergencyPhone').value.trim();
+      const relation = document.getElementById('formEmergencyRelation').value.trim();
+      const relationOther = document.getElementById('formEmergencyRelationOther').value.trim();
+
+      // บังคับเบอร์โทรศัพท์ 10 หลัก
+      if (phone.length !== 10 || !phone.startsWith('0')) {
+        showAlert('error', 'กรุณากรอกเบอร์โทรศัพท์มือถือของพนักงานให้ครบ 10 หลัก (เช่น 08XXXXXXXX)');
+        document.getElementById('formPhone').focus();
+        return;
+      }
+
+      if (emergencyPhone.length !== 10 || !emergencyPhone.startsWith('0')) {
+        showAlert('error', 'กรุณากรอกเบอร์โทรศัพท์ผู้ติดต่อฉุกเฉินให้ครบ 10 หลัก (เช่น 08XXXXXXXX)');
+        document.getElementById('formEmergencyPhone').focus();
+        return;
+      }
+
+      // ตรวจสอบกรณีเลือก "อื่นๆ"
+      let finalRelation = relation;
+      if (relation === 'อื่นๆ') {
+        if (!relationOther) {
+          showAlert('error', 'กรุณาระบุความสัมพันธ์เพิ่มเติมในช่อง "โปรดระบุความสัมพันธ์"');
+          document.getElementById('formEmergencyRelationOther').focus();
+          return;
+        }
+        finalRelation = 'อื่นๆ (' + relationOther + ')';
+      }
+
       const formData = {
         empId: currentEmployee.empId,
-        phone: document.getElementById('formPhone').value.trim(),
+        phone: phone,
         lineId: document.getElementById('formLineId').value.trim(),
         email: document.getElementById('formEmail').value.trim(),
         address: document.getElementById('formAddress').value.trim(),
         emergencyName: document.getElementById('formEmergencyName').value.trim(),
-        emergencyRelation: document.getElementById('formEmergencyRelation').value.trim(),
-        emergencyPhone: document.getElementById('formEmergencyPhone').value.trim(),
+        emergencyRelation: finalRelation,
+        emergencyPhone: emergencyPhone,
         emergencyAddress: document.getElementById('formEmergencyAddress').value.trim(),
         pdpaConsent: true
       };
