@@ -618,36 +618,12 @@
             showAlert('error', 'เชื่อมต่อกับ Google Sheet ไม่สำเร็จ: ' + error.message);
           });
       } 
-      // กรณีที่ 3: พรีวิวทดสอบหน้าเว็บ (ยังไม่ได้ใส่ URL)
+      // กรณีที่ 3: ยังไม่ได้ระบุ URL
       else {
-        setTimeout(() => {
-          btnSearch.disabled = false;
-          btnSearchText.textContent = 'ตรวจสอบรหัส';
-          btnSearchSpinner.classList.add('hidden');
-
-          currentEmployee = {
-            empId: empId.toUpperCase(),
-            title: 'นาย',
-            firstName: 'สมชาย',
-            lastName: 'มุ่งมั่นพัฒนา',
-            fullName: 'นาย สมชาย มุ่งมั่นพัฒนา',
-            position: 'เจ้าหน้าที่ประสานงานลูกค้า',
-            department: 'ฝ่ายบริการลูกค้า',
-            branch: 'สำนักงานใหญ่ (ขอนแก่น)',
-            phone: '0812345678',
-            lineId: 'somchai.acg',
-            email: 'somchai@autocorp.co.th',
-            address: '99/1 หมู่ 5 ถ.มิตรภาพ ต.ในเมือง อ.เมือง จ.ขอนแก่น 40000',
-            emergencyName: 'นางสมศรี มุ่งมั่นพัฒนา',
-            emergencyRelation: 'มารดา',
-            emergencyPhone: '0898765432',
-            emergencyAddress: '99/1 หมู่ 5 ถ.มิตรภาพ ต.ในเมือง อ.เมือง จ.ขอนแก่น 40000'
-          };
-          displayEmployeeCard(currentEmployee);
-          prefillFormFields(currentEmployee);
-          toggleStep1SubmitButton();
-          showAlert('success', 'พบข้อมูล (ตัวอย่าง): ' + currentEmployee.fullName);
-        }, 500);
+        btnSearch.disabled = false;
+        btnSearchText.textContent = 'ตรวจสอบรหัส';
+        btnSearchSpinner.classList.add('hidden');
+        showAlert('error', '⚠️ ยังไม่ได้เชื่อมต่อ Google Sheet! กรุณานำ Web App URL ของคุณมาใส่ใน APPS_SCRIPT_URL ในไฟล์ index.html');
       }
     }
 
@@ -822,13 +798,10 @@
       } 
       // กรณีที่ 3: พรีวิวทดสอบ
       else {
-        setTimeout(() => {
-          btnSubmit.disabled = false;
-          btnText.textContent = 'บันทึกข้อมูล';
-          btnSpinner.classList.add('hidden');
-          const nowStr = new Date().toLocaleString('th-TH');
-          showSuccessScreen(formData, nowStr);
-        }, 800);
+        btnSubmit.disabled = false;
+        btnText.textContent = 'บันทึกข้อมูล';
+        btnSpinner.classList.add('hidden');
+        showAlert('error', '⚠️ ยังไม่ได้เชื่อมต่อ Google Sheet! กรุณาระบุ APPS_SCRIPT_URL');
       }
     }
 
